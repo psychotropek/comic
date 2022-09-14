@@ -32,11 +32,10 @@ def zip_images(file_paths: List[str], dir_path: string):
     [test_head,test_tail] = os.path.split(dir_path)
     [_,file_prefix] = os.path.split(test_head)
     print('Zipping ' + test_head + '/' + file_prefix + ' - ' + test_tail + '.cbz')
-    with ZipFile(test_head + '/' + file_prefix + ' - ' + test_tail + '.zip','w') as zipfile:
+    with ZipFile(test_head + '/' + file_prefix + ' - ' + test_tail + '.cbz','w') as zipfile:
         for name in file_paths:
             [head, tail] = os.path.split(name)
-            #TODO args
-            #zipfile.write(name, name)
+            zipfile.write(name, tail)
     zipfile.close()
 
 
