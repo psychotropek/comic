@@ -1,4 +1,5 @@
 from PIL import Image as PIL
+from zipfile import ZipFile
 import re, argparse
 from typing import List
 import string
@@ -8,61 +9,38 @@ from os import system, name, path
 # Set the default save path variable here
 DEFAULT_SAVE_PATH = f"{path.expanduser('~')}/Downloads/"
 
-# Convert PIL-modules default Image-class to a more readable format
-# (To avoid using Image.Image everywhere!)
-class Image:
-    PIL.Image
-
 def walk_through_folder(folder_path):
-    for root, dirs, files in os.walk(folder_path):
-        for dir in dirs:
-            list_of_files = []
-            #if there's a zip, don't execute this
-            for file in files:
-                [base,ext] = os.path.splitext(file)
-                if ext == '.webp':
-                    image: Image = PIL.open(path)
-                    image.save(base + '.jpg')
-                    list_of_files.append(os.path.join(root,file))   
-                elif ext in ['.jpg','.png','.gif']:
-                    #TODO: do we need
-                    list_of_files.append(os.path.join(root,file))   
-            zip_images(list_of_files)
-    return 
-
-def zip_images(file_paths: List[str])
-    file_name: str = input("Enter file name (*.pdf): ").strip()
-
-    if file_name == "":
-        # If no file name is given, generate a random one
-        # TODO: get folder name
-        file_name = "blargle"
-        print(f"-- Generated random file name: {file_name}.pdf --")
-
-    if not file_name[-4:] == ".pdf":
-        # If file name is lacking the pdf extension, add it
-        file_name += ".pdf"
-
-    if input("Use default save path? (y/n): ") in ["y", "Y", ""]:
-        file_name = save_path + file_name
-
-    print(f'Saving {os.path.basename(file_name)}')
-    try:
-        images[0].save(file_name, save_all=True, append_images=images[1:])
-        print(f"\nImages saved to {file_name}\n")
-    except OSError:
-        print("Error: could not save images as pdf.")
+    for dir_path, dir_names, file_names in os.walk(folder_path):
+        files_to_zip = []
+        for file in file_names:
+            [base,ext] = os.path.splitext(file)
+            image_file_path = os.path.join(dir_path,file)
+            if ext == '.webp':
+                image = PIL.open(image_file_path)              
+                image.save(os.path.join(dir_path, base + '.jpg'))
+                if os.path.join(dir_path, base + '.jpg') not in files_to_zip:
+                    files_to_zip.append(os.path.join(dir_path, base + '.jpg'))
+            elif ext in ['.jpg','.png','.gif']:
+                if image_file_path not in files_to_zip:
+                    files_to_zip.append(image_file_path)
+        if len(files_to_zip) > 0:
+            zip_images(files_to_zip, dir_path)
 
 
-
-def print_start_message():
-    print("\n"+56*"=")
-    print("To smush images together into a pdf for ereading.")
-    print(56*"="+"\n")
+def zip_images(file_paths: List[str], dir_path: string):
+    
+    [test_head,test_tail] = os.path.split(dir_path)
+    [_,file_prefix] = os.path.split(test_head)
+    print('Zipping ' + test_head + '/' + file_prefix + ' - ' + test_tail + '.cbz')
+    with ZipFile(test_head + '/' + file_prefix + ' - ' + test_tail + '.zip','w') as zipfile:
+        for name in file_paths:
+            [head, tail] = os.path.split(name)
+            #TODO args
+            #zipfile.write(name, name)
+    zipfile.close()
 
 
 def main():
-    print_start_message()
 
     parser = argparse.ArgumentParser()
     parser.add_argument("comic_path", help="the chapter folder path")
