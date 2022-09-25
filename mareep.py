@@ -11,7 +11,6 @@ from os import system, name, path
 class Image:
     PIL.Image
 
-# This is recursive TODO make function to get all chapter folders and process them one by one
 def get_file_paths_from_folder(folder_path):
     list_of_files = []
     for root, dirs, files in os.walk(folder_path):
@@ -33,24 +32,29 @@ def create_image_list(file_paths: List[str]) -> List[Image]:
         images.append(image)
     return images
 
-def convert_images_to_pdf(images: List[Image]) -> None:
-    file_name = 'comic.pdf'
-    print(f'Saving {os.path.basename(file_name)}')
-    try:
-        images[0].save(file_name, save_all=True, append_images=images[1:])
-        print(f"\nImages saved to {file_name}\n")
-    except OSError:
-        print("Error: could not save images as pdf.")
+def convert_images_to_pdf(images: List[Image], comic_path: str) -> None:
+    print(comic_path)
+    print(f'Saving {os.path.basename(comic_path)}')
+    if images:
+        try:
+            images[0].save(comic_path, save_all=True, append_images=images[1:])
+            print(f"\nImages saved to {comic_path}\n")
+        except OSError:
+            print("Error: could not save images as pdf.")
 
 def main():
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("comic_path", help="the chapter folder path")
+    parser.add_argument("comic_path", help="the base folder path")
     args = parser.parse_args()
 
-    comic_file_paths: List[str] = get_file_paths_from_folder(args.comic_path) 
-    images: List[Image] = create_image_list(comic_file_paths)
-    convert_images_to_pdf(images)
+    for root, dirs, files in os.walk(args.comic_path):
+        #if files not empty
+
+        if files:
+            comic_file_paths: List[str] = get_file_paths_from_folder(root) 
+            images: List[Image] = create_image_list(comic_file_paths)
+            convert_images_to_pdf(images, 'test.pdf')
 
 # If this file is the main program (if we're executing this instead of loading it)
 if __name__ == "__main__":
